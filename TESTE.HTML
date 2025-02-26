@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metas de Convites</title>
+    <base href="/"> <!-- Garante que os caminhos sejam corretamente interpretados -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+        }
+        .card {
+            min-width: 150px;
+            padding: 15px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s ease;
+        }
+        .highlight {
+            animation: grow 0.5s forwards;
+        }
+        @keyframes grow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .progress {
+            height: 15px;
+            background: #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 8px;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            text-align: center;
+            color: black;
+            font-size: 12px;
+            font-weight: bold;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .progress-bar span {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+        }
+        p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Metas de Convites</h1>
+    <div class="container">
+        <p id="loading">Carregando dados...</p>
+    </div>
+    
+    <script>
+        async function atualizarDados() {
+            const url = "https://script.googleusercontent.com/a/macros/ebdicorp.com.br/echo?user_content_key=G_9ScX35PuwKGCexm9bpEmw_8IPQdmWmQTn-VrNz-_U3AX-qF2txM_CbSPNEa143NzJ1eZhhzNrEKVreRJXGBFFbZ6bmQme0OJmA1Yb3SEsKFZqtv3DaNYcMrmhZHmUMi80zadyHLKBodCZlWePrmNSTGmQjppQ7WPL95YpS2cFVkkzFT2UdLRGFujPzjLtxoSFzFIhHOOiRGSGbf7XhdJB0KSkC6gzFPLjjR5Pqk7MTV4VowzsXNa4arxk1EEfNltqkjQscYuKagQEneoX2wQ&lib=MkqVb0B2Pj277gHbDBh6U8aNWmXF4loPg";
+            const container = document.querySelector('.container');
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Erro ao acessar a API");
+                const data = await response.json();
+                if (!Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = "<p>Nenhum dado encontrado.</p>";
+                    return;
+                }
+                container.innerHTML = "";
+                data.forEach((item, index) => {
+                    const nome = item.nome || `P${index + 1}`;
+                    const meta = parseInt(item.meta) || 0;
+                    const alcancado = parseInt(item.alcancado) || 0;
+                    const percentual = meta > 0 ? (alcancado / meta) * 100 : 100;
+                    const percentualBarra = Math.min(percentual, 100);
+                    const corBarra = percentual < 50 ? "#dc3545" : percentual < 100 ? "#ffc107" : "#28a745";
+                    const card = document.createElement('div');
+                    card.className = `card ${percentual >= 100 ? 'highlight' : ''}`;
+                    card.innerHTML = `
+                        <h3>${nome}</h3>
+                        <p>Meta: <span>${meta}</span></p>
+                        <p>Realizado: <span>${alcancado}</span></p>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: ${percentualBarra}%; background: ${corBarra};">
+                                <span>${Math.round(percentual)}%</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+                container.innerHTML = '<p style="color:red;">Erro ao carregar dados. Verifique a API.</p>';
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            atualizarDados();
+            setInterval(atualizarDados, 8000);
+        });
+    </script>
+</body>
+</html>
